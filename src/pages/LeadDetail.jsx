@@ -100,9 +100,13 @@ export default function LeadDetail({ showToast }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  
+
   // TanStack Query for lead data
-  const { data: rawData, isLoading: loading, refetch } = useQuery({
+  const {
+    data: rawData,
+    isLoading: loading,
+    refetch,
+  } = useQuery({
     queryKey: queryKeys.leads.detail(id),
     queryFn: () => getLead(id),
     ...cacheConfig.standard,
@@ -112,16 +116,21 @@ export default function LeadDetail({ showToast }) {
 
   // TanStack Query for followup settings
   const { data: followupSettingsData } = useQuery({
-    queryKey: ['followups'],
+    queryKey: ["followups"],
     queryFn: async () => {
       const response = await getFollowups();
-      const followups = Array.isArray(response) ? response : response.followups || [];
+      const followups = Array.isArray(response)
+        ? response
+        : response.followups || [];
       return followups.sort((a, b) => a.order - b.order);
     },
     ...cacheConfig.static,
   });
 
-  const followupSettings = useMemo(() => followupSettingsData || [], [followupSettingsData]);
+  const followupSettings = useMemo(
+    () => followupSettingsData || [],
+    [followupSettingsData],
+  );
   const data = rawData;
 
   // Mutations
@@ -131,7 +140,7 @@ export default function LeadDetail({ showToast }) {
   const updateMutation = useUpdateLead();
   const cancelJobMutation = useCancelEmailJob();
   const retryJobMutation = useRetryEmailJob();
-  
+
   const [showFreezeModal, setShowFreezeModal] = useState(false);
   const [freezeHours, setFreezeHours] = useState(24);
   const [processingAction, setProcessingAction] = useState(false);
@@ -200,7 +209,6 @@ export default function LeadDetail({ showToast }) {
     queryClient.invalidateQueries({ queryKey: queryKeys.leads.detail(id) });
     refetch();
   }, [queryClient, id, refetch]);
-
 
   const handleDelete = async () => {
     setConfirmModal({
@@ -318,7 +326,11 @@ export default function LeadDetail({ showToast }) {
   };
 
   // --- Slot Picker Handlers ---
-  const openSlotPicker = async ({ mode = "manual", jobType = null, jobId = null } = {}) => {
+  const openSlotPicker = async ({
+    mode = "manual",
+    jobType = null,
+    jobId = null,
+  } = {}) => {
     setShowSlotPicker(true);
     setSelectedSlot(null);
     setManualTitle("");
@@ -362,7 +374,7 @@ export default function LeadDetail({ showToast }) {
     try {
       setProcessingAction(true);
       setProcessingAction(true);
-      
+
       if (reschedulingMode && reschedulingJobId) {
         // Use rescheduleEmailJob for existing jobs
         await rescheduleEmailJob(reschedulingJobId, selectedSlot.time);
@@ -435,7 +447,10 @@ export default function LeadDetail({ showToast }) {
       const response = await resumeFollowups(id);
       // Check if blocked by high-priority email
       if (response.blocked) {
-        showToast?.(response.message || "Cannot resume: blocked by scheduled email", "warning");
+        showToast?.(
+          response.message || "Cannot resume: blocked by scheduled email",
+          "warning",
+        );
       } else {
         showToast?.("Followups resumed", "success");
       }
@@ -511,7 +526,8 @@ export default function LeadDetail({ showToast }) {
       await loadLeadData();
     } catch (err) {
       // Check for specific error about higher priority mail
-      const errorMsg = err.response?.data?.error || err.message || "Failed to resume job";
+      const errorMsg =
+        err.response?.data?.error || err.message || "Failed to resume job";
       showToast?.(errorMsg, "error");
     } finally {
       setProcessingAction(false);
@@ -576,6 +592,9 @@ export default function LeadDetail({ showToast }) {
   }
 
   const { lead, emailJobs } = data;
+
+  // Check if lead is dead - all actions should be disabled
+  const isLeadDead = lead.status === "dead" || lead.terminalState === "dead";
 
   const formatJobType = (type) => {
     if (!type) return "Unknown";
@@ -1040,13 +1059,13 @@ export default function LeadDetail({ showToast }) {
           </div>
 
           <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
-            {lead.status !== "converted" && (
+            {lead.status !== "converted" && !isLeadDead && (
               <>
                 {lead.status === "frozen" ? (
                   <button
                     className="btn btn-primary"
                     onClick={handleUnfreeze}
-                    disabled={processingAction}
+                    disabled={processingAction || isLeadDead}
                   >
                     <RotateCcw size={18} /> Unfreeze
                   </button>
@@ -1054,7 +1073,7 @@ export default function LeadDetail({ showToast }) {
                   <button
                     className="btn btn-secondary"
                     onClick={() => setShowFreezeModal(true)}
-                    disabled={processingAction}
+                    disabled={processingAction || isLeadDead}
                   >
                     <Snowflake size={18} /> Freeze
                   </button>
@@ -1063,7 +1082,7 @@ export default function LeadDetail({ showToast }) {
                 <button
                   className="btn btn-success"
                   onClick={handleConvert}
-                  disabled={processingAction}
+                  disabled={processingAction || isLeadDead}
                 >
                   <Trophy size={18} /> Convert
                 </button>
@@ -1770,11 +1789,12 @@ export default function LeadDetail({ showToast }) {
             </div>
 
             {/* Manual Schedule Button */}
-            {lead.status !== "converted" && !isEditing && (
+            {lead.status !== "converted" && !isEditing && !isLeadDead && (
               <button
                 onClick={openSlotPicker}
                 className="btn btn-secondary"
                 style={{ marginTop: "1.5rem", width: "100%" }}
+                disabled={isLeadDead}
               >
                 <CalendarClock size={16} /> Manual Schedule
               </button>
@@ -2367,14 +2387,18 @@ export default function LeadDetail({ showToast }) {
                     }
                   } else if (action === "resumeJob") {
                     // Resume a job that was paused due to priority
-                    const jobId = item.rawData?.id || item.rawData?.emailJobId || item.id;
+                    const jobId =
+                      item.rawData?.id || item.rawData?.emailJobId || item.id;
                     console.log("[Modal Action] Resume job:", jobId);
-                    
+
                     // Find the paused job
                     const pausedJob = emailJobs.find(
-                      (j) => (j.id === jobId || j.id?.toString() === jobId?.toString()) && j.status === 'paused'
+                      (j) =>
+                        (j.id === jobId ||
+                          j.id?.toString() === jobId?.toString()) &&
+                        j.status === "paused",
                     );
-                    
+
                     if (pausedJob) {
                       handleResumeJob(pausedJob.id);
                     } else {
@@ -2382,9 +2406,14 @@ export default function LeadDetail({ showToast }) {
                     }
                   } else if (action === "reschedule") {
                     // Resolve Job ID: prefer emailJobId (manual mails) or rawData.id (jobs)
-                    const jobId = item.rawData?.emailJobId || item.rawData?.id || item.id;
+                    const jobId =
+                      item.rawData?.emailJobId || item.rawData?.id || item.id;
                     if (jobId) {
-                      openSlotPicker({ mode: "reschedule", jobType: item.type, jobId: jobId });
+                      openSlotPicker({
+                        mode: "reschedule",
+                        jobType: item.type,
+                        jobId: jobId,
+                      });
                     } else {
                       showToast("Cannot reschedule: Missing Job ID", "error");
                     }
