@@ -88,4 +88,35 @@ self.addEventListener('pushsubscriptionchange', (event) => {
   // Re-subscribe logic could be added here
 });
 
+// CRITICAL: Handle raw push events (for data-only messages)
+// This ensures notifications work even if FCM strips the notification field
+self.addEventListener('push', (event) => {
+  console.log('[Service Worker] Push event received:', event);
+  
+  if (event.data) {
+    try {
+      const payload = event.data.json();
+      console.log('[Service Worker] Push payload:', payload);
+      
+      // If there's no notification field, create one from data
+      if (!payload.notification && payload.data) {
+        const title = payload.data.title || 'LeadFlow Notification';
+        const options = {
+          body: payload.data.body || payload.data.message || 'You have a new notification',
+          icon: '/logo192.png',
+          badge: '/logo192.png',
+          tag: payload.data.tag || 'leadflow-push',
+          data: payload.data
+        };
+        
+        event.waitUntil(
+          self.registration.showNotification(title, options)
+        );
+      }
+    } catch (e) {
+      console.log('[Service Worker] Push data parse error:', e);
+    }
+  }
+});
+
 console.log('[Service Worker] Firebase messaging service worker initialized');
