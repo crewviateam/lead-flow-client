@@ -62,22 +62,30 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
   };
 
   return (
-    <aside className={`sidebar ${isCollapsed ? 'collapsed' : ''}`}>
+    <aside className={`sidebar ${isCollapsed ? "collapsed" : ""}`}>
       <div className="sidebar-header">
         <div className="sidebar-logo" ref={logoRef}>
-          <Zap size={28} color="#a855f7" />
-          <h1>LeadFlow</h1>
+          <img
+            src="/LOGO ICON PNG 1.png"
+            alt="OutFlow Logo"
+            style={{ width: 32, height: 32, borderRadius: 6 }}
+          />
+          <h1>OutFlow</h1>
         </div>
-        <button className="toggle-btn" onClick={toggleSidebar} aria-label="Toggle sidebar">
+        <button
+          className="toggle-btn"
+          onClick={toggleSidebar}
+          aria-label="Toggle sidebar"
+        >
           {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
         </button>
       </div>
-      
+
       <nav className="sidebar-nav" ref={navRef}>
         {navItems.map((item) => (
           <button
             key={item.id}
-            className={`nav-item ${isActive(item.id) ? 'active' : ''} ${isCollapsed ? 'tooltip' : ''}`}
+            className={`nav-item ${isActive(item.id) ? "active" : ""} ${isCollapsed ? "tooltip" : ""}`}
             onClick={() => handleNavClick(item.id)}
             data-tooltip={item.label}
           >
@@ -86,22 +94,28 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }) {
           </button>
         ))}
       </nav>
-      
-      <div style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
+
+      <div
+        style={{
+          marginTop: "auto",
+          paddingTop: "1rem",
+          borderTop: "1px solid var(--border-color)",
+        }}
+      >
         {/* Theme Toggle */}
-        <button 
+        <button
           onClick={toggleTheme}
-          className={`nav-item ${isCollapsed ? 'tooltip' : ''}`}
-          data-tooltip={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-          style={{ marginBottom: '0.5rem' }}
+          className={`nav-item ${isCollapsed ? "tooltip" : ""}`}
+          data-tooltip={theme === "dark" ? "Light Mode" : "Dark Mode"}
+          style={{ marginBottom: "0.5rem" }}
         >
-          {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-          <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+          {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+          <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
         </button>
-        
-        <button 
-          onClick={() => handleNavClick('/settings')}
-          className={`nav-item ${isActive('/settings') ? 'active' : ''} ${isCollapsed ? 'tooltip' : ''}`}
+
+        <button
+          onClick={() => handleNavClick("/settings")}
+          className={`nav-item ${isActive("/settings") ? "active" : ""} ${isCollapsed ? "tooltip" : ""}`}
           data-tooltip="Settings"
         >
           <Settings size={20} />

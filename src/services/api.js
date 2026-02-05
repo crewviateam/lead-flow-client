@@ -2,8 +2,8 @@
 import axios from 'axios';
 
 // Use environment variable or fall back to localhost
-const API_BASE_URL = 'https://server.sbcws.com/api';
-// const API_BASE_URL = 'http://localhost:3000/api';
+export const API_BASE_URL = 'https://server.sbcws.com/api';
+// export const API_BASE_URL = 'http://localhost:3000/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -85,7 +85,7 @@ export const markNotificationRead = async (id = null) => {
 export const uploadLeads = async (file) => {
   const formData = new FormData();
   formData.append('file', file);
-  const response = await api.post('/upload-leads', formData, {
+  const response = await api.post('/leads/upload-leads', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
   return response.data;

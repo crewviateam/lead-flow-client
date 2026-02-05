@@ -1,55 +1,168 @@
 // pages/Settings.jsx - Enhanced Automation Software Settings
 // Migrated to TanStack Query for optimal caching and mutations
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { 
-  Settings as SettingsIcon, Clock, Mail, Plus, Trash2, Save, AlertCircle, Check, 
-  GripVertical, RefreshCw, Calendar, Pause, Zap, Shield, Send, Bell, 
-  Database, Globe, ChevronRight, ToggleLeft, ToggleRight, AlertTriangle, TrendingUp, Flame, FileText
-} from 'lucide-react';
-import gsap from 'gsap';
-import ReactQuill from 'react-quill-new';
-import 'react-quill-new/dist/quill.snow.css';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { queryKeys, cacheConfig } from '../lib/queryClient';
-import { 
-  getSettings, updateSettings, addFollowup, updateFollowup, deleteFollowup, 
-  getTemplates, createTemplate, updateTemplate, deleteTemplate, 
-  getPausedDates, pauseDate, unpauseDate, updateWeekendDays, 
-  reschedulePausedEmails, testBrevoConnection,
-  getRulebook, updateRulebook, resetRulebook, getDefaultRulebook
-} from '../services/api';
-import ConfirmModal from '../components/ConfirmModal';
-import RulebookSection from '../components/RulebookSection';
+import {
+  Settings as SettingsIcon,
+  Clock,
+  Mail,
+  Plus,
+  Trash2,
+  Save,
+  AlertCircle,
+  Check,
+  GripVertical,
+  RefreshCw,
+  Calendar,
+  Pause,
+  Zap,
+  Shield,
+  Send,
+  Bell,
+  Database,
+  Globe,
+  ChevronRight,
+  ToggleLeft,
+  ToggleRight,
+  AlertTriangle,
+  TrendingUp,
+  Flame,
+  FileText,
+  Code,
+} from "lucide-react";
+import gsap from "gsap";
+import ReactQuill from "react-quill-new";
+import "react-quill-new/dist/quill.snow.css";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { queryKeys, cacheConfig } from "../lib/queryClient";
+import {
+  getSettings,
+  updateSettings,
+  addFollowup,
+  updateFollowup,
+  deleteFollowup,
+  getTemplates,
+  createTemplate,
+  updateTemplate,
+  deleteTemplate,
+  getPausedDates,
+  pauseDate,
+  unpauseDate,
+  updateWeekendDays,
+  reschedulePausedEmails,
+  testBrevoConnection,
+  getRulebook,
+  updateRulebook,
+  resetRulebook,
+  getDefaultRulebook,
+} from "../services/api";
+import ConfirmModal from "../components/ConfirmModal";
+import RulebookSection from "../components/RulebookSection";
+import DeveloperModeSection from "../components/DeveloperModeSection";
 
 export default function Settings({ showToast }) {
   const queryClient = useQueryClient();
-  const [activeSection, setActiveSection] = useState('rate-limit');
+  const [activeSection, setActiveSection] = useState("rate-limit");
   const [editingTemplate, setEditingTemplate] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [newFollowup, setNewFollowup] = useState({ name: '', delayDays: 3 });
-  const [newPauseDate, setNewPauseDate] = useState('');
+  const [newFollowup, setNewFollowup] = useState({ name: "", delayDays: 3 });
+  const [newPauseDate, setNewPauseDate] = useState("");
   const formRef = useRef(null);
 
   // Confirm Modal
-  const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: null, variant: 'danger' });
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: null,
+    variant: "danger",
+  });
 
-  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   // Navigation sections
-  const navSections = useMemo(() => [
-    { id: 'rate-limit', label: 'Rate Limiting', icon: Zap, category: 'Sending' },
-    { id: 'business-hours', label: 'Business Hours', icon: Clock, category: 'Sending' },
-    { id: 'smart-send', label: 'Smart Send Time', icon: TrendingUp, category: 'Sending' },
-    { id: 'working-days', label: 'Working Days', icon: Calendar, category: 'Sending' },
-    { id: 'paused-dates', label: 'Paused Dates', icon: Pause, category: 'Sending' },
-    { id: 'retry', label: 'Retry & Recovery', icon: RefreshCw, category: 'Sending' },
-    { id: 'sequences', label: 'Email Sequences', icon: Mail, category: 'Automation' },
-    { id: 'templates', label: 'Email Templates', icon: Send, category: 'Automation' },
-    { id: 'reports', label: 'Weekly Reports', icon: FileText, category: 'Analytics' },
-    { id: 'brevo', label: 'Brevo Integration', icon: Globe, category: 'Integrations' },
-    { id: 'rulebook', label: 'System Rulebook', icon: Shield, category: 'Advanced' },
-    { id: 'danger', label: 'Danger Zone', icon: AlertTriangle, category: 'Advanced' },
-  ], []);
+  const navSections = useMemo(
+    () => [
+      {
+        id: "rate-limit",
+        label: "Rate Limiting",
+        icon: Zap,
+        category: "Sending",
+      },
+      {
+        id: "business-hours",
+        label: "Business Hours",
+        icon: Clock,
+        category: "Sending",
+      },
+      {
+        id: "smart-send",
+        label: "Smart Send Time",
+        icon: TrendingUp,
+        category: "Sending",
+      },
+      {
+        id: "working-days",
+        label: "Working Days",
+        icon: Calendar,
+        category: "Sending",
+      },
+      {
+        id: "paused-dates",
+        label: "Paused Dates",
+        icon: Pause,
+        category: "Sending",
+      },
+      {
+        id: "retry",
+        label: "Retry & Recovery",
+        icon: RefreshCw,
+        category: "Sending",
+      },
+      {
+        id: "sequences",
+        label: "Email Sequences",
+        icon: Mail,
+        category: "Automation",
+      },
+      {
+        id: "templates",
+        label: "Email Templates",
+        icon: Send,
+        category: "Automation",
+      },
+      {
+        id: "reports",
+        label: "Weekly Reports",
+        icon: FileText,
+        category: "Analytics",
+      },
+      {
+        id: "brevo",
+        label: "Brevo Integration",
+        icon: Globe,
+        category: "Integrations",
+      },
+      {
+        id: "rulebook",
+        label: "System Rulebook",
+        icon: Shield,
+        category: "Advanced",
+      },
+      {
+        id: "developer",
+        label: "Developer Mode",
+        icon: Code,
+        category: "Advanced",
+      },
+      {
+        id: "danger",
+        label: "Danger Zone",
+        icon: AlertTriangle,
+        category: "Advanced",
+      },
+    ],
+    [],
+  );
 
   // TanStack Query - Data fetching
   const { data: settings, isLoading: settingsLoading } = useQuery({
@@ -65,14 +178,21 @@ export default function Settings({ showToast }) {
   });
 
   const { data: pausedData } = useQuery({
-    queryKey: ['pausedDates'],
-    queryFn: () => getPausedDates().catch(() => ({ pausedDates: [], weekendDays: [0, 6] })),
+    queryKey: ["pausedDates"],
+    queryFn: () =>
+      getPausedDates().catch(() => ({ pausedDates: [], weekendDays: [0, 6] })),
     ...cacheConfig.config,
   });
 
   // Derived state
-  const pausedDates = useMemo(() => pausedData?.pausedDates || [], [pausedData]);
-  const weekendDays = useMemo(() => pausedData?.weekendDays || [0, 6], [pausedData]);
+  const pausedDates = useMemo(
+    () => pausedData?.pausedDates || [],
+    [pausedData],
+  );
+  const weekendDays = useMemo(
+    () => pausedData?.weekendDays || [0, 6],
+    [pausedData],
+  );
   const loading = settingsLoading;
 
   // Local settings state for form editing
@@ -83,12 +203,12 @@ export default function Settings({ showToast }) {
     }
   }, [settings, localSettings]);
 
-
   useEffect(() => {
     if (!loading && formRef.current) {
-      gsap.fromTo(formRef.current,
+      gsap.fromTo(
+        formRef.current,
         { x: 20, opacity: 0 },
-        { x: 0, opacity: 1, duration: 0.3, ease: 'power2.out' }
+        { x: 0, opacity: 1, duration: 0.3, ease: "power2.out" },
       );
     }
   }, [activeSection, loading]);
@@ -105,10 +225,12 @@ export default function Settings({ showToast }) {
   const handleSaveRateLimit = useCallback(async () => {
     setSaving(true);
     try {
-      await updateSettingsMutation.mutateAsync({ rateLimit: localSettings?.rateLimit });
-      showToast?.('Rate limit settings saved!', 'success');
+      await updateSettingsMutation.mutateAsync({
+        rateLimit: localSettings?.rateLimit,
+      });
+      showToast?.("Rate limit settings saved!", "success");
     } catch (error) {
-      showToast?.('Failed to save: ' + error.message, 'error');
+      showToast?.("Failed to save: " + error.message, "error");
     } finally {
       setSaving(false);
     }
@@ -117,167 +239,202 @@ export default function Settings({ showToast }) {
   const handleSaveBusinessHours = useCallback(async () => {
     setSaving(true);
     try {
-      await updateSettingsMutation.mutateAsync({ businessHours: localSettings?.businessHours });
-      showToast?.('Business hours saved!', 'success');
+      await updateSettingsMutation.mutateAsync({
+        businessHours: localSettings?.businessHours,
+      });
+      showToast?.("Business hours saved!", "success");
     } catch (error) {
-      showToast?.('Failed to save: ' + error.message, 'error');
+      showToast?.("Failed to save: " + error.message, "error");
     } finally {
       setSaving(false);
     }
   }, [localSettings?.businessHours, updateSettingsMutation, showToast]);
 
-  const handleSaveReporting = useCallback(async (reportSettings) => {
-    setSaving(true);
-    try {
-      const settingsToSave = reportSettings || localSettings?.reporting;
-      await updateSettingsMutation.mutateAsync({ reporting: settingsToSave });
-      if (reportSettings) {
-        setLocalSettings(prev => ({ ...prev, reporting: reportSettings }));
+  const handleSaveReporting = useCallback(
+    async (reportSettings) => {
+      setSaving(true);
+      try {
+        const settingsToSave = reportSettings || localSettings?.reporting;
+        await updateSettingsMutation.mutateAsync({ reporting: settingsToSave });
+        if (reportSettings) {
+          setLocalSettings((prev) => ({ ...prev, reporting: reportSettings }));
+        }
+        showToast?.("Report settings saved!", "success");
+      } catch (error) {
+        showToast?.("Failed to save: " + error.message, "error");
+      } finally {
+        setSaving(false);
       }
-      showToast?.('Report settings saved!', 'success');
-    } catch (error) {
-      showToast?.('Failed to save: ' + error.message, 'error');
-    } finally {
-      setSaving(false);
-    }
-  }, [localSettings?.reporting, updateSettingsMutation, showToast]);
+    },
+    [localSettings?.reporting, updateSettingsMutation, showToast],
+  );
 
+  const handleToggleWeekendDay = useCallback(
+    async (dayIndex) => {
+      try {
+        let newWeekendDays;
+        if (weekendDays.includes(dayIndex)) {
+          newWeekendDays = weekendDays.filter((d) => d !== dayIndex);
+        } else {
+          newWeekendDays = [...weekendDays, dayIndex];
+        }
 
-  const handleToggleWeekendDay = useCallback(async (dayIndex) => {
-    try {
-      let newWeekendDays;
-      if (weekendDays.includes(dayIndex)) {
-        newWeekendDays = weekendDays.filter(d => d !== dayIndex);
-      } else {
-        newWeekendDays = [...weekendDays, dayIndex];
+        if (newWeekendDays.length >= 7) {
+          showToast?.("Cannot mark all days as weekends", "warning");
+          return;
+        }
+
+        await updateWeekendDays(newWeekendDays);
+        queryClient.invalidateQueries({ queryKey: ["pausedDates"] });
+        showToast?.("Weekend days updated!", "success");
+      } catch (error) {
+        showToast?.("Failed to update: " + error.message, "error");
       }
-      
-      if (newWeekendDays.length >= 7) {
-        showToast?.('Cannot mark all days as weekends', 'warning');
-        return;
-      }
-      
-      await updateWeekendDays(newWeekendDays);
-      queryClient.invalidateQueries({ queryKey: ['pausedDates'] });
-      showToast?.('Weekend days updated!', 'success');
-    } catch (error) {
-      showToast?.('Failed to update: ' + error.message, 'error');
-    }
-  }, [weekendDays, queryClient, showToast]);
+    },
+    [weekendDays, queryClient, showToast],
+  );
 
   const handlePauseDate = useCallback(async () => {
     if (!newPauseDate) {
-      showToast?.('Please select a date', 'warning');
+      showToast?.("Please select a date", "warning");
       return;
     }
     try {
       setSaving(true);
       await pauseDate(newPauseDate);
-      queryClient.invalidateQueries({ queryKey: ['pausedDates'] });
-      setNewPauseDate('');
-      showToast?.('Date paused!', 'success');
+      queryClient.invalidateQueries({ queryKey: ["pausedDates"] });
+      setNewPauseDate("");
+      showToast?.("Date paused!", "success");
       await reschedulePausedEmails(newPauseDate);
     } catch (error) {
-      showToast?.('Failed: ' + error.message, 'error');
+      showToast?.("Failed: " + error.message, "error");
     } finally {
       setSaving(false);
     }
   }, [newPauseDate, queryClient, showToast]);
 
-  const handleUnpauseDate = useCallback(async (date) => {
-    try {
-      await unpauseDate(date);
-      queryClient.invalidateQueries({ queryKey: ['pausedDates'] });
-      showToast?.('Date unpaused!', 'success');
-    } catch (error) {
-      showToast?.('Failed: ' + error.message, 'error');
-    }
-  }, [queryClient, showToast]);
+  const handleUnpauseDate = useCallback(
+    async (date) => {
+      try {
+        await unpauseDate(date);
+        queryClient.invalidateQueries({ queryKey: ["pausedDates"] });
+        showToast?.("Date unpaused!", "success");
+      } catch (error) {
+        showToast?.("Failed: " + error.message, "error");
+      }
+    },
+    [queryClient, showToast],
+  );
 
   const handleAddFollowup = useCallback(async () => {
     if (!newFollowup.name || !newFollowup.delayDays) {
-      showToast?.('Please enter name and delay', 'warning');
+      showToast?.("Please enter name and delay", "warning");
       return;
     }
     try {
       const result = await addFollowup(newFollowup);
-      setLocalSettings(prev => ({ ...prev, followups: result.followups }));
+      setLocalSettings((prev) => ({ ...prev, followups: result.followups }));
       queryClient.invalidateQueries({ queryKey: queryKeys.settings.all() });
-      setNewFollowup({ name: '', delayDays: 3 });
-      showToast?.('Followup added!', 'success');
+      setNewFollowup({ name: "", delayDays: 3 });
+      showToast?.("Followup added!", "success");
     } catch (error) {
-      showToast?.('Failed: ' + error.message, 'error');
+      showToast?.("Failed: " + error.message, "error");
     }
   }, [newFollowup, queryClient, showToast]);
 
-  const handleUpdateFollowup = useCallback(async (id, updates) => {
-    try {
-      const result = await updateFollowup(id, updates);
-      setLocalSettings(prev => ({ ...prev, followups: result.followups }));
-      queryClient.invalidateQueries({ queryKey: queryKeys.settings.all() });
-    } catch (error) {
-      showToast?.('Failed: ' + error.message, 'error');
-    }
-  }, [queryClient, showToast]);
-
-
-  const handleDeleteFollowup = useCallback((id) => {
-    setConfirmModal({
-      isOpen: true,
-      title: 'Delete Followup',
-      message: 'Are you sure you want to delete this followup step?',
-      onConfirm: async () => {
-        try {
-          const result = await deleteFollowup(id);
-          setLocalSettings(prev => ({ ...prev, followups: result.followups }));
-          queryClient.invalidateQueries({ queryKey: queryKeys.settings.all() });
-          showToast?.('Followup deleted', 'success');
-        } catch (error) {
-          showToast?.('Failed: ' + error.message, 'error');
-        }
-      },
-      variant: 'danger'
-    });
-  }, [queryClient, showToast]);
-
-  const handleSaveTemplate = useCallback(async (template) => {
-    try {
-      if (template.id) {
-        await updateTemplate(template.id, template);
-        showToast?.('Template updated', 'success');
-      } else {
-        await createTemplate(template);
-        showToast?.('Template created', 'success');
+  const handleUpdateFollowup = useCallback(
+    async (id, updates) => {
+      try {
+        const result = await updateFollowup(id, updates);
+        setLocalSettings((prev) => ({ ...prev, followups: result.followups }));
+        queryClient.invalidateQueries({ queryKey: queryKeys.settings.all() });
+      } catch (error) {
+        showToast?.("Failed: " + error.message, "error");
       }
-      queryClient.invalidateQueries({ queryKey: queryKeys.templates.all() });
-      setEditingTemplate(null);
-    } catch (error) {
-      showToast?.('Failed: ' + error.message, 'error');
-    }
-  }, [queryClient, showToast]);
+    },
+    [queryClient, showToast],
+  );
 
-  const handleDeleteTemplate = useCallback((id) => {
-    setConfirmModal({
-      isOpen: true,
-      title: 'Delete Template',
-      message: 'Delete this template? Any sequence using it will fail to send.',
-      onConfirm: async () => {
-        try {
-          await deleteTemplate(id);
-          queryClient.invalidateQueries({ queryKey: queryKeys.templates.all() });
-          showToast?.('Template deleted', 'success');
-        } catch (error) {
-          showToast?.('Failed: ' + error.message, 'error');
+  const handleDeleteFollowup = useCallback(
+    (id) => {
+      setConfirmModal({
+        isOpen: true,
+        title: "Delete Followup",
+        message: "Are you sure you want to delete this followup step?",
+        onConfirm: async () => {
+          try {
+            const result = await deleteFollowup(id);
+            setLocalSettings((prev) => ({
+              ...prev,
+              followups: result.followups,
+            }));
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.settings.all(),
+            });
+            showToast?.("Followup deleted", "success");
+          } catch (error) {
+            showToast?.("Failed: " + error.message, "error");
+          }
+        },
+        variant: "danger",
+      });
+    },
+    [queryClient, showToast],
+  );
+
+  const handleSaveTemplate = useCallback(
+    async (template) => {
+      try {
+        if (template.id) {
+          await updateTemplate(template.id, template);
+          showToast?.("Template updated", "success");
+        } else {
+          await createTemplate(template);
+          showToast?.("Template created", "success");
         }
-      },
-      variant: 'danger'
-    });
-  }, [queryClient, showToast]);
+        queryClient.invalidateQueries({ queryKey: queryKeys.templates.all() });
+        setEditingTemplate(null);
+      } catch (error) {
+        showToast?.("Failed: " + error.message, "error");
+      }
+    },
+    [queryClient, showToast],
+  );
 
+  const handleDeleteTemplate = useCallback(
+    (id) => {
+      setConfirmModal({
+        isOpen: true,
+        title: "Delete Template",
+        message:
+          "Delete this template? Any sequence using it will fail to send.",
+        onConfirm: async () => {
+          try {
+            await deleteTemplate(id);
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.templates.all(),
+            });
+            showToast?.("Template deleted", "success");
+          } catch (error) {
+            showToast?.("Failed: " + error.message, "error");
+          }
+        },
+        variant: "danger",
+      });
+    },
+    [queryClient, showToast],
+  );
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "50vh",
+        }}
+      >
         <div className="loading-spinner"></div>
       </div>
     );
@@ -2649,9 +2806,13 @@ export default function Settings({ showToast }) {
           </>
         )}
 
-        {/* System Rulebook */}
         {activeSection === "rulebook" && (
           <RulebookSection showToast={showToast} />
+        )}
+
+        {/* Developer Mode */}
+        {activeSection === "developer" && (
+          <DeveloperModeSection showToast={showToast} />
         )}
 
         {/* Danger Zone */}

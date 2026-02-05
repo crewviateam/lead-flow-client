@@ -1,0 +1,154 @@
+/* src/components/NotificationPermission.css */
+
+.notification-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  color: white;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.notification-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notification-icon {
+  flex-shrink: 0;
+}
+
+.notification-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.notification-text strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.notification-text span {
+  font-size: 12px;
+  opacity: 0.9;
+}
+
+.notification-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-enable {
+  padding: 8px 16px;
+  background: white;
+  color: #4f46e5;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-enable:hover {
+  background: #f0f0f0;
+  transform: scale(1.02);
+}
+
+.btn-enable:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.btn-dismiss {
+  padding: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-dismiss:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Toggle Button */
+.notification-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.notification-toggle:hover {
+  background: #e5e7eb;
+}
+
+.notification-toggle.enabled {
+  background: #ecfdf5;
+  border-color: #10b981;
+  color: #059669;
+}
+
+.notification-toggle.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  color: #6b7280;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .notification-toggle {
+    background: #374151;
+    border-color: #4b5563;
+    color: #d1d5db;
+  }
+
+  .notification-toggle:hover {
+    background: #4b5563;
+  }
+
+  .notification-toggle.enabled {
+    background: #064e3b;
+    border-color: #10b981;
+    color: #6ee7b7;
+  }
+}

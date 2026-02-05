@@ -3,9 +3,10 @@ import {
   Zap, Plus, Edit2, Trash2, ToggleLeft, ToggleRight, 
   Clock, Mail, MousePointer, Eye, AlertTriangle, Check, X, RefreshCw
 } from 'lucide-react';
+import { API_BASE_URL } from '../services/api';
 
 // API functions
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = API_BASE_URL;
 
 const fetchConditionalEmails = async () => {
   const res = await fetch(`${API_BASE}/conditional-emails`);

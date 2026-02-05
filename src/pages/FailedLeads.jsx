@@ -17,12 +17,12 @@ export default function FailedLeads({ showToast }) {
   const tableRef = useRef(null);
 
   const statusFilters = [
-    { key: 'all', label: 'All', statuses: 'hard_bounce,failed,blocked,spam,deferred' },
+    { key: 'all', label: 'All', statuses: 'hard_bounce,failed,blocked,spam' },
     { key: 'blocked', label: 'Blocked', statuses: 'blocked' },
     { key: 'hard_bounce', label: 'Hard Bounce', statuses: 'hard_bounce' },
     { key: 'spam', label: 'Spam', statuses: 'spam' },
     { key: 'failed', label: 'Failed', statuses: 'failed' },
-    { key: 'deferred', label: 'Deferred', statuses: 'deferred' }
+    // { key: 'deferred', label: 'Deferred', statuses: 'deferred' }
   ];
 
   const getActiveStatuses = () => statusFilters.find(f => f.key === statusFilter)?.statuses || statusFilters[0].statuses;
@@ -272,13 +272,13 @@ export default function FailedLeads({ showToast }) {
                                 'hard_bounce': 'Hard Bounced',
                                 'failed': 'Failed',
                                 'blocked': 'Blocked',
-                                'deferred': 'Deferred',
+                                // ': ',
                                 'spam': 'Spam'
                               };
                               return labels[s] || s;
                             };
 
-                            const failureStates = ['hard_bounce', 'failed', 'blocked', 'spam', 'deferred'];
+                            const failureStates = ['hard_bounce', 'failed', 'blocked', 'spam'];
                             
                             if (schedule) {
                               if (schedule.initialEmail && failureStates.includes(schedule.initialEmail.status)) {
